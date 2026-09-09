@@ -1,13 +1,13 @@
 export type ReminderType = "birthday" | "anniversary" | "custom";
+export type RecurrenceType = "none" | "weekly" | "biweekly" | "monthly" | "yearly";
 
 export type Reminder = {
   id: string;
   user_id: string;
   type: ReminderType;
   label: string;
-  month: number; // 1-12
-  day: number; // 1-31
-  year: number | null; // optional — lets birthdays show "turns 30"
+  start_date: string; // "YYYY-MM-DD"
+  recurrence: RecurrenceType;
   recipient_email: string;
   notes: string | null;
   created_at: string;
@@ -17,4 +17,12 @@ export const REMINDER_TYPES: { value: ReminderType; label: string }[] = [
   { value: "birthday", label: "Birthday" },
   { value: "anniversary", label: "Anniversary" },
   { value: "custom", label: "Custom" },
+];
+
+export const RECURRENCE_OPTIONS: { value: RecurrenceType; label: string }[] = [
+  { value: "yearly", label: "Yearly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "biweekly", label: "Bi-weekly" },
+  { value: "weekly", label: "Weekly" },
+  { value: "none", label: "Never (one-time)" },
 ];

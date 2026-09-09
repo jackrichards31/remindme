@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { ReminderType } from "@/lib/types";
+import type { RecurrenceType, ReminderType } from "@/lib/types";
 
 export type FormState = { status: "idle" | "error"; message?: string };
 
@@ -16,9 +16,8 @@ export async function addReminder(
   } = await supabase.auth.getUser();
   if (!user) return { status: "error", message: "Not signed in." };
 
-  const date = String(formData.get("date") ?? "");
-  const [yearStr, monthStr, dayStr] = date.split("-");
-  if (!yearStr || !monthStr || !dayStr) {
+  const startDate = String(formData.get("date") ?? "");
+  if (!startDate) {
     return { status: "error", message: "Pick a date." };
   }
 
@@ -32,9 +31,8 @@ export async function addReminder(
     user_id: user.id,
     type: String(formData.get("type") ?? "custom") as ReminderType,
     label,
-    month: Number(monthStr),
-    day: Number(dayStr),
-    year: Number(yearStr),
+    start_date: startDate,
+    recurrence: String(formData.get("recurrence") ?? "yearly") as RecurrenceType,
     recipient_email: recipientEmail,
     notes: String(formData.get("notes") ?? "").trim() || null,
   });

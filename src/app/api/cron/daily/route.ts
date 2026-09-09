@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resend, FROM_ADDRESS } from "@/lib/resend";
+import { occursOn } from "@/lib/recurrence";
 import type { Reminder } from "@/lib/types";
 import BirthdayEmail from "@/emails/BirthdayEmail";
 import AnniversaryEmail from "@/emails/AnniversaryEmail";
@@ -17,13 +18,13 @@ function isAuthorized(request: NextRequest) {
 
 function renderEmail(reminder: Reminder) {
   const notes = reminder.notes;
+  const startYear = new Date(reminder.start_date).getUTCFullYear();
+  const nowYear = new Date().getUTCFullYear();
   if (reminder.type === "birthday") {
-    const age = reminder.year ? new Date().getUTCFullYear() - reminder.year : null;
-    return BirthdayEmail({ label: reminder.label, age, notes });
+    return BirthdayEmail({ label: reminder.label, age: nowYear - startYear, notes });
   }
   if (reminder.type === "anniversary") {
-    const years = reminder.year ? new Date().getUTCFullYear() - reminder.year : null;
-    return AnniversaryEmail({ label: reminder.label, years, notes });
+    return AnniversaryEmail({ label: reminder.label, years: nowYear - startYear, notes });
   }
   return GenericReminderEmail({ label: reminder.label, notes });
 }
@@ -33,23 +34,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const now = new Date();
-  const month = now.getUTCMonth() + 1;
-  const day = now.getUTCDate();
-
   const supabase = createAdminClient();
-  const { data: reminders, error } = await supabase
-    .from("reminders")
-    .select("*")
-    .eq("month", month)
-    .eq("day", day);
+  // Recurrence (weekly/biweekly/monthly's day-of-month clamp) isn't a plain
+  // column match, so every reminder gets fetched and checked in code rather
+  // than filtered in the query — fine at personal scale, would need
+  // reworking if this ever needed to scale to many thousands of reminders.
+  const { data: reminders, error } = await supabase.from("reminders").select("*");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const today = new Date();
+  const due = ((reminders as Reminder[]) ?? []).filter((r) => occursOn(r, today));
+
   const results = await Promise.allSettled(
-    ((reminders as Reminder[]) ?? []).map((reminder) =>
+    due.map((reminder) =>
       resend.emails.send({
         from: FROM_ADDRESS,
         to: reminder.recipient_email,
@@ -62,5 +62,5 @@ export async function GET(request: NextRequest) {
   const sent = results.filter((r) => r.status === "fulfilled").length;
   const failed = results.length - sent;
 
-  return NextResponse.json({ checked: `${month}/${day}`, sent, failed });
+  return NextResponse.json({ checked: due.length, sent, failed });
 }

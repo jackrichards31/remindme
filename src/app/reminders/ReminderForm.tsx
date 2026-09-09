@@ -2,7 +2,7 @@
 
 import { useActionState, useRef, useEffect } from "react";
 import { addReminder, type FormState } from "./actions";
-import { REMINDER_TYPES } from "@/lib/types";
+import { RECURRENCE_OPTIONS, REMINDER_TYPES } from "@/lib/types";
 
 const initialState: FormState = { status: "idle" };
 
@@ -47,13 +47,26 @@ export default function ReminderForm({ defaultEmail }: { defaultEmail: string })
         className="rounded-md border border-[var(--hairline)] bg-transparent px-3 py-2 text-sm"
       />
 
+      <select
+        name="recurrence"
+        defaultValue="yearly"
+        aria-label="Repeats"
+        className="rounded-md border border-[var(--hairline)] bg-transparent px-3 py-2 text-sm"
+      >
+        {RECURRENCE_OPTIONS.map((r) => (
+          <option key={r.value} value={r.value}>
+            Repeats: {r.label}
+          </option>
+        ))}
+      </select>
+
       <input
         type="email"
         name="recipient_email"
         required
         defaultValue={defaultEmail}
         placeholder="Reminder goes to"
-        className="rounded-md border border-[var(--hairline)] bg-transparent px-3 py-2 text-sm"
+        className="rounded-md border border-[var(--hairline)] bg-transparent px-3 py-2 text-sm sm:col-span-2"
       />
 
       <input
