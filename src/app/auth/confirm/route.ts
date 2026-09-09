@@ -19,6 +19,9 @@ export async function GET(request: NextRequest) {
     if (!error) {
       redirect(next);
     }
+    console.error("verifyOtp failed", { type, status: error.status, message: error.message });
+  } else {
+    console.error("auth/confirm hit without token_hash/type", { token_hash, type });
   }
 
   // HTTP headers can only hold ASCII bytes — a raw em dash in the query
