@@ -21,5 +21,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  redirect("/login?error=Link expired or invalid — request a new one.");
+  // HTTP headers can only hold ASCII bytes — a raw em dash in the query
+  // string throws when Next builds the Location header, so it has to be
+  // percent-encoded like any other reserved/non-ASCII query value.
+  redirect(`/login?error=${encodeURIComponent("Link expired or invalid - request a new one.")}`);
 }
