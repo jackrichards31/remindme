@@ -20,37 +20,6 @@ I built this because "I have their birthday somewhere" always turns out to mean 
 - **Resend + React Email** — Templated emails (`src/emails/`), one component per reminder type
 - **Vercel Cron** — A daily job (`vercel.json`) hits `/api/cron/daily`, which scans every account for today's date and sends matching emails
 
-## Getting Started
-
-1. Clone the repository
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Create a free [Supabase](https://supabase.com) project, then run both migrations in `supabase/migrations/`, in order — `0001_init.sql` then `0002_recurrence.sql` — against it (via the SQL Editor in the Supabase dashboard, or the Supabase CLI).
-
-4. Create a free [Resend](https://resend.com) account and grab an API key.
-
-5. Copy `.env.local.example` to `.env.local` and fill in:
-   ```bash
-   NEXT_PUBLIC_SUPABASE_URL=
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=
-   SUPABASE_SERVICE_ROLE_KEY=
-   RESEND_API_KEY=
-   REMINDER_FROM_ADDRESS=
-   NEXT_PUBLIC_SITE_URL=http://localhost:3000
-   CRON_SECRET=
-   ```
-
-6. Run the dev server:
-   ```bash
-   npm run dev
-   ```
-
-7. Open `http://localhost:3000`
-
 **Requirements:** Node.js 20+. Sending a real magic link or reminder email needs live Supabase/Resend keys — without them, sign-in and email sending will fail (the app itself still builds and runs).
 
 **Deploying:** on Vercel, add the same env vars from step 5 to the project settings, and set `NEXT_PUBLIC_SITE_URL` to your deployed URL. The cron job in `vercel.json` is picked up automatically — Vercel signs its requests with `CRON_SECRET` as a bearer token, which `/api/cron/daily` checks before doing anything.
